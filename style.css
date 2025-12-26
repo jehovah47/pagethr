@@ -1,0 +1,236 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #fff;
+    color: #333;
+    line-height: 1.5;
+}
+
+.container {
+    max-width: 380px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    min-height: 100vh;
+}
+
+.title {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 500;
+    color: #8B0000;
+    margin-bottom: 30px;
+    padding-top: 10px;
+}
+
+.datetime-section {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.date {
+    font-size: 28px;
+    font-weight: 300;
+    color: rgb(28,149,119);
+    margin-bottom: 0px;
+    letter-spacing: 1px;
+}
+
+.time {
+    font-size: 18px;
+    color: rgb(28,149,119);
+    font-weight: 300;
+    margin-bottom: 0px;
+}
+
+.status-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -10px;
+    margin-bottom: 20px;
+    gap: 8px;
+}
+
+.status-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-text {
+    font-size: 30px;
+    color: rgb(28,149,119);
+    font-weight: 400;
+}
+
+.main-info-section {
+    border: 1px dashed #ccc;
+    border-radius: 0px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: transparent;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    /* 使用更细密的虚线 */
+    border-style: dashed;
+    border-width: 1px;
+    /* 通过调整虚线间距来实现更细密的效果 */
+    outline: none;
+}
+
+.info-details {
+    margin-top: 20px;
+}
+
+.info-details .info-item {
+    font-size: 16px;
+}
+
+.info-details .info-item:last-child {
+    margin-bottom: 20px;
+}
+
+.info-item {
+    display: flex;
+    margin-bottom: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.info-item:last-child {
+    margin-bottom: 0;
+}
+
+.label {
+    color: #666;
+    min-width: 60px;
+    flex-shrink: 0;
+}
+
+.value {
+    color: #333;
+    flex: 1;
+}
+
+.divider {
+    height: 1px;
+    background-color: #e0e0e0;
+    margin: 20px 0;
+}
+
+.personal-info {
+    margin-bottom: 40px;
+}
+
+.personal-info .info-item {
+    margin-bottom: 8px;
+    padding: 0 0 0 15px;
+    background: none;
+    display: block;
+    font-size: 16px;
+}
+
+.view-button {
+    width: 200px;
+    height: 44px;
+    background-color: rgb(152,38,43);
+    color: white;
+    border: none;
+    border-radius: 0px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin: 0 auto;
+    display: block;
+}
+
+.view-button:hover {
+    background-color: rgb(132,28,33);
+}
+
+.view-button:active {
+    background-color: #a31818;
+    transform: translateY(1px);
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+    .container {
+        max-width: 348px;
+        min-height: 300px;
+        padding: 12px 12px 20px 12px;
+    }
+    
+    .title {
+        margin-bottom: 15px;
+        font-size: 16px;
+        font-weight: 600;
+    }
+    
+    .date {
+          font-size: 26px;
+          font-weight: 400;
+          margin-bottom: -3px;
+      }
+     
+     .time {
+          font-size: 18px;
+          font-weight: 400;
+          margin-bottom: 0px;
+      }
+     
+     .status-section {
+         margin-top: -15px;
+         margin-bottom: 25px;
+         gap: 6px;
+     }
+    
+    .status-text {
+        font-size: 22px;
+    }
+    
+    .main-info-section {
+         padding: 12px;
+         margin-bottom: 20px;
+     }
+    
+    .info-details {
+        margin-top: 12px;
+    }
+    
+    .info-details .info-item {
+         font-size: 16px;
+         padding-left: 15px;
+     }
+    
+    .info-item {
+         margin-bottom: 16px;
+         font-size: 13px;
+     }
+    
+    .personal-info {
+         margin-top: 30px;
+         margin-bottom: 20px;
+     }
+     
+     .personal-info .info-item {
+            margin-bottom: 8px;
+            font-size: 14px;
+            padding: 0 0 0 20px;
+        }
+    
+    .view-button {
+         width: 120px;
+         height: 36px;
+         font-size: 14px;
+         margin-top: 50px;
+         margin-bottom: 15px;
+         background-color: rgb(152,38,43);
+     }
+}

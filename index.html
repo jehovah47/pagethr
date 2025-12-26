@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>预约签到</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <style>
+        /* --- 全局样式 --- */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fff;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* --- 用户选择界面 --- */
+        #user-selector {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%; height: 100%;
+            background: #fff;
+            z-index: 10000;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .selector-header {
+            margin-bottom: 20px;
+            text-align: center;
+            flex-shrink: 0;
+            user-select: none;
+        }
+        .selector-header h2 { margin: 0 0 10px 0; color: #333; }
+        .selector-header p { color: #666; font-size: 14px; margin: 0; line-height: 1.6; }
+        
+        /* 底部版权信息的样式 */
+        .footer-credits {
+            text-align: center;
+            flex-shrink: 0;
+            padding-bottom: 10px;
+            margin-top: 10px;
+        }
+        .footer-credits .hint { 
+            color: #999; 
+            font-size: 12px; 
+            display: block; 
+            margin-bottom: 4px; 
+        }
+        
+        #admin-tip {
+            color: #ff4d4f;
+            font-size: 12px;
+            text-align: center;
+            display: none;
+            margin-bottom: 10px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        #preset-list {
+            flex-shrink: 0;
+        }
+
+        .user-option {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            transition: all 0.3s;
+            flex-wrap: wrap; /* 允许换行以适应复杂表单 */
+        }
+        
+        .user-option.selected {
+            border-color: #07c160;
+            background-color: #f0f9f4;
+        }
+
+        .user-option label { flex: 1; margin-left: 10px; font-weight: 500; }
+        .user-option input[type="radio"] { transform: scale(1.2); }
+        
+        .delete-btn {
+            display: none;
+            padding: 5px 10px;
+            background-color: #ff4d4f;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        .custom-inputs {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #ccc;
+            display: none; 
+            width: 100%;
+        }
+        .custom-input-group { margin-bottom: 10px; }
+        .custom-input-group span { display: block; font-size: 12px; color: #888; margin-bottom: 4px; }
+        
+        /* 输入框和下拉菜单通用样式 */
+        .custom-input-group input, 
+        .custom-input-group select { 
+            width: 100%; 
+            padding: 10px; /* 增加点击区域 */
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            box-sizing: border-box; 
+            font-size: 14px;
+            background-color: #fff;
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: #07c160;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            margin-top: auto; /* 将按钮推到底部 */
+            margin-bottom: 10px; /* 减少下边距，为底部文字腾出空间 */
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* --- 扫描界面 --- */
+        #scanner {
+            width: 100%; height: 100%;
+            background-color: #000;
+            position: fixed; top: 0; left: 0;
+            display: none; 
+            z-index: 5000;
+        }
+        #video {
+            width: 100%; height: 100%;
+            object-fit: cover; 
+            display: block;
+        }
+
+        /* --- 加载动画 --- */
+        #loading {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: #fff;
+            display: none;
+            z-index: 9999;
+        }
+        .progress-bar {
+            width: 100%; height: 2px;
+            background-color: #f0f0f0;
+            margin: 0; padding: 0; overflow: hidden;
+        }
+        .progress-inner {
+            height: 100%;
+            background-color: #07c160;
+            width: 0;
+            animation: progress 1.6s ease-out forwards, fadeOutTrail 0.4s 1.6s ease-out forwards;
+        }
+        @keyframes progress { 0% { width: 0; } 100% { width: 100%; } }
+        @keyframes fadeOutTrail {
+            0% { opacity: 1; transform: scaleX(1); transform-origin: left; }
+            50% { opacity: 0.6; transform: scaleX(1); transform-origin: left; }
+            100% { opacity: 0; transform: scaleX(1.02); transform-origin: left; }
+        }
+
+        /* --- 签到成功界面 --- */
+        .container { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="user-selector">
+        <div class="selector-header">
+            <h2>签到系统</h2>
+            <p>
+                识别到任意二维码或双击屏幕跳转。<br>
+                系统将自动匹配当前时间段与对应预约时段。<br>
+                连续点击空白处四下可进入删除模式管理用户。
+            </p>
+            <div id="admin-tip">⚠️ 删除模式已开启，点击红色按钮删除用户</div>
+        </div>
+
+        <div id="preset-list"></div>
+
+        <div class="user-option" id="custom-option" onclick="selectRadio('u_custom', true)">
+            <div style="display:flex; align-items:center; width:100%;">
+                <input type="radio" name="userSelect" id="u_custom" value="custom">
+                <label for="u_custom">自定义 / 新增用户</label>
+            </div>
+            
+            <div class="custom-inputs" id="custom-inputs-area" onclick="event.stopPropagation()">
+                
+                <div class="custom-input-group">
+                    <span>姓名 (必填)</span>
+                    <input type="text" id="c_name" placeholder="请输入姓名">
+                </div>
+                
+                <div class="custom-input-group">
+                    <span>学工号 (必填)</span>
+                    <input type="text" id="c_id" placeholder="请输入学工号">
+                </div>
+                
+                <div class="custom-input-group">
+                    <span>部门/学院 (必填)</span>
+                    <select id="c_dept_select" onchange="toggleOtherDept(this)">
+                        <option value="" disabled selected>请选择学院</option>
+                        <option value="化学化工学院">化学化工学院</option>
+                        <option value="物理与微电子科学学院">物理与微电子科学学院</option>
+                        <option value="生物学院">生物学院</option>
+                        <option value="数学学院">数学学院</option>
+                        <option value="建筑学院">建筑学院</option>
+                        <option value="信息科学与工程学院">信息科学与工程学院</option>
+                        <option value="土木工程学院">土木工程学院</option>
+                        <option value="材料科学与工程学院">材料科学与工程学院</option>
+                        <option value="机械与运载工程学院">机械与运载工程学院</option>
+                        <option value="法学院">法学院</option>
+                        <option value="经济与贸易学院">经济与贸易学院</option>
+                        <option value="工商管理学院">工商管理学院</option>
+                        <option value="外国语与国际教育学院">外国语与国际教育学院</option>
+                        <option value="金融与统计学院">金融与统计学院</option>
+                        <option value="other">其他 (手动填写)</option>
+                    </select>
+                    <input type="text" id="c_dept_other" placeholder="请填写其他部门名称" style="display:none; margin-top:8px;">
+                </div>
+            </div>
+        </div>
+
+        <button class="start-btn" onclick="startSystem()">启动扫描 / 签到</button>
+        
+        <div class="footer-credits">
+            <span class="hint">作者 jehovah47</span>
+            <span class="hint">（特别感谢傻鸟提供的技术支持）</span>
+        </div>
+    </div>
+
+    <div id="scanner">
+        <video id="video" autoplay playsinline></video>
+    </div>
+
+    <div id="loading">
+        <div class="progress-bar">
+            <div class="progress-inner"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 class="title">预约签到</h1>
+        
+        <div class="main-info-section">
+            <div class="datetime-section">
+                <div class="date">2025-01-01</div>
+                <div class="time">10:36:09</div>
+            </div>
+            
+            <div class="status-section">
+                <div class="status-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" fill="rgb(28,149,119)"/>
+                        <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="status-text">签到成功</div>
+            </div>
+            
+            <div class="info-details">
+                <div class="info-item">
+                    <span class="label">签到时间：</span>
+                    <span class="value">2025-01-01</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">预约资源：</span>
+                    <span class="value">南校区健身房</span>
+                </div>
+                <div class="info-item" id="appointment-time">
+                     <span class="label">预约时段：</span>
+                     <span class="value">20:00-21:30</span>
+                 </div>
+             </div>
+         </div>
+        
+        <div class="personal-info">
+            <div class="info-item">姓名：<span id="res-name"></span></div>
+            <div class="info-item">学工号：<span id="res-id"></span></div>
+            <div class="info-item">部门：<span id="res-dept"></span></div>
+        </div>
+        
+        <button class="view-button">查看我的预约</button>
+    </div>
+    
+    <script>
+        // --- 全局变量 ---
+        let users = [];
+        let currentUser = {};
+        let deleteMode = false;
+        
+        // 初始默认用户 (设置为空)
+        const defaultUsers = [];
+
+        // --- 辅助：全屏控制函数 ---
+        function enterFullscreen() {
+            var elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE11 */
+                elem.msRequestFullscreen();
+            }
+        }
+
+        function exitFullscreen() {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) { /* Safari */
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) { /* IE11 */
+                document.msExitFullscreen();
+            }
+        }
+
+        // --- 初始化：加载用户 ---
+        function initUsers() {
+            const stored = localStorage.getItem('signin_users_v2');
+            if (stored) {
+                users = JSON.parse(stored);
+            } else {
+                users = [...defaultUsers]; 
+            }
+            renderUserList();
+            
+            if(users.length > 0) {
+                document.getElementById('idx_0').checked = true;
+                selectRadio('idx_0', false);
+            } else {
+                // 如果没有用户，默认选中自定义
+                document.getElementById('u_custom').checked = true;
+                selectRadio('u_custom', true);
+            }
+        }
+
+        // --- 渲染用户列表 ---
+        function renderUserList() {
+            const container = document.getElementById('preset-list');
+            container.innerHTML = ''; 
+
+            users.forEach((u, index) => {
+                const div = document.createElement('div');
+                div.className = 'user-option';
+                div.onclick = (e) => {
+                    if(e.target.classList.contains('delete-btn')) return;
+                    selectRadio(`idx_${index}`);
+                };
+
+                const html = `
+                    <input type="radio" name="userSelect" id="idx_${index}" value="${index}">
+                    <label for="idx_${index}">
+                        ${u.name}<br>
+                        <span style="font-size:12px;color:#888;">${u.id} | ${u.dept}</span>
+                    </label>
+                    <div class="delete-btn" onclick="deleteUser(${index})" ${deleteMode ? 'style="display:block"' : ''}>删除</div>
+                `;
+                div.innerHTML = html;
+                container.appendChild(div);
+            });
+        }
+
+        // --- 辅助：选中逻辑 ---
+        function selectRadio(id, isCustom = false) {
+            document.querySelectorAll('.user-option').forEach(el => el.classList.remove('selected'));
+            
+            const radio = document.getElementById(id);
+            if(radio) {
+                radio.checked = true;
+                const parent = radio.closest('.user-option');
+                if(parent) parent.classList.add('selected');
+            }
+
+            const customArea = document.getElementById('custom-inputs-area');
+            if (isCustom) {
+                customArea.style.display = 'block';
+                setTimeout(() => {
+                    const selector = document.getElementById('user-selector');
+                    selector.scrollTop = selector.scrollHeight;
+                }, 100);
+            } else {
+                customArea.style.display = 'none';
+            }
+        }
+
+        // --- 辅助：处理部门下拉 ---
+        function toggleOtherDept(select) {
+            const otherInput = document.getElementById('c_dept_other');
+            if (select.value === 'other') {
+                otherInput.style.display = 'block';
+                // 聚焦并滚动
+                setTimeout(() => {
+                    otherInput.focus();
+                    const selector = document.getElementById('user-selector');
+                    selector.scrollTop = selector.scrollHeight;
+                }, 100);
+            } else {
+                otherInput.style.display = 'none';
+                otherInput.value = ''; // 清空手动输入
+            }
+        }
+
+        // --- 保存新用户 ---
+        function saveNewUser(user) {
+            const exists = users.some(u => u.name === user.name && u.id === user.id);
+            if (!exists) {
+                users.push(user);
+                localStorage.setItem('signin_users_v2', JSON.stringify(users));
+                renderUserList();
+            }
+        }
+
+        // --- 删除用户 ---
+        function deleteUser(index) {
+            if(confirm('确定要删除该用户吗？')) {
+                users.splice(index, 1);
+                localStorage.setItem('signin_users_v2', JSON.stringify(users));
+                renderUserList();
+                
+                // 如果删除后列表为空，切换回自定义模式
+                if(users.length === 0) {
+                    document.getElementById('u_custom').checked = true;
+                    selectRadio('u_custom', true);
+                }
+            }
+        }
+
+        // --- 四击空白处触发删除模式 ---
+        let clickCount = 0;
+        let clickTimer = null;
+        
+        document.getElementById('user-selector').addEventListener('click', function(e) {
+            if (e.target.closest('input') || e.target.closest('select') || e.target.closest('.user-option') || e.target.closest('button')) {
+                return;
+            }
+
+            clickCount++;
+            
+            if (clickCount === 1) {
+                clickTimer = setTimeout(() => {
+                    clickCount = 0;
+                }, 1000);
+            }
+
+            if (clickCount === 4) {
+                clearTimeout(clickTimer);
+                clickCount = 0;
+                toggleDeleteMode();
+            }
+        });
+
+        function toggleDeleteMode() {
+            deleteMode = !deleteMode;
+            const tip = document.getElementById('admin-tip');
+            const btns = document.querySelectorAll('.delete-btn');
+            
+            if (deleteMode) {
+                tip.style.display = 'block';
+                btns.forEach(b => b.style.display = 'block');
+                alert("已进入管理模式：点击红色按钮删除用户。\n再四击空白处退出。");
+            } else {
+                tip.style.display = 'none';
+                btns.forEach(b => b.style.display = 'none');
+                alert("已退出管理模式。");
+            }
+        }
+
+        // --- 启动逻辑 (包含新验证 + 启动全屏) ---
+        function startSystem() {
+            const radios = document.getElementsByName('userSelect');
+            let selectedValue = null;
+            for (const radio of radios) {
+                if (radio.checked) {
+                    selectedValue = radio.value;
+                    break;
+                }
+            }
+
+            if (selectedValue === 'custom') {
+                const cName = document.getElementById('c_name').value.trim();
+                const cId = document.getElementById('c_id').value.trim();
+                const deptSelect = document.getElementById('c_dept_select');
+                let cDept = deptSelect.value;
+
+                if (!cName) { alert("请填写姓名！"); return; }
+                if (!cId) { alert("请填写学工号！"); return; }
+                if (!cDept) { alert("请选择部门/学院！"); return; }
+                
+                if (cDept === 'other') {
+                    const otherVal = document.getElementById('c_dept_other').value.trim();
+                    if (!otherVal) { alert("请手动填写学院名称！"); return; }
+                    cDept = otherVal;
+                }
+
+                currentUser.name = cName;
+                currentUser.id = cId;
+                currentUser.dept = cDept;
+                saveNewUser(currentUser);
+                
+            } else {
+                currentUser = users[selectedValue];
+            }
+
+            if(!currentUser) {
+                alert("请选择一个用户或填写新用户信息");
+                return;
+            }
+
+            // 【核心修改】点击启动时，申请进入全屏
+            enterFullscreen();
+
+            document.getElementById('user-selector').style.display = 'none';
+            initScanner();
+        }
+
+        // --- 扫描与原有逻辑 ---
+        function initScanner() {
+            const scanner = document.getElementById('scanner');
+            const video = document.getElementById('video');
+            const scannerTitle = document.createElement('div');
+            scanner.style.display = 'block';
+
+            scanner.addEventListener('dblclick', function() {
+                triggerSuccess();
+            });
+            
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(function(stream) {
+                    video.srcObject = stream;
+                    video.play();
+                    requestAnimationFrame(tick);
+                })
+                .catch(function(err) {
+                    alert('请允许相机权限：' + err);
+                });
+            
+            function tick() {
+                if (scanner.style.display === 'none') return;
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+                    if (code) {
+                        triggerSuccess();
+                        return; 
+                    }
+                }
+                requestAnimationFrame(tick);
+            }
+        }
+
+        function triggerSuccess() {
+            const scanner = document.getElementById('scanner');
+            const video = document.getElementById('video');
+            const loading = document.getElementById('loading');
+            const container = document.querySelector('.container');
+
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+
+            // 【核心修改】扫描成功后，退出全屏
+            exitFullscreen();
+
+            scanner.style.display = 'none';
+            loading.style.display = 'block';
+            
+            document.getElementById('res-name').textContent = currentUser.name;
+            document.getElementById('res-id').textContent = currentUser.id;
+            document.getElementById('res-dept').textContent = currentUser.dept;
+
+            setTimeout(() => {
+                loading.style.display = 'none';
+                container.style.display = 'block';
+                startDateTimeUpdate();
+                updateAppointmentTime(); 
+            }, 2000);
+        }
+
+        // --- 时间逻辑 ---
+        function updateDateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const dateString = `${year}-${month}-${day}`;
+            
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const timeString = `${hours}:${minutes}:${seconds}`;
+            
+            const dateElement = document.querySelector('.date');
+            const timeElement = document.querySelector('.time');
+            const signinDateElement = document.querySelector('.info-details .info-item .value');
+            
+            if (dateElement) dateElement.textContent = dateString;
+            if (timeElement) timeElement.textContent = timeString;
+            if (signinDateElement) signinDateElement.textContent = dateString;
+        }
+
+        function startDateTimeUpdate() {
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+        }
+
+        function updateAppointmentTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const totalMinutes = hours * 60 + minutes;
+            const timeElement = document.querySelector('#appointment-time .value');
+
+            if (totalMinutes >= 0 && totalMinutes <= 17*60+30) {
+                timeElement.textContent = '16:30-18:00';
+            } else if (totalMinutes >= 17*60+31 && totalMinutes <= 19*60) {
+                timeElement.textContent = '18:20-19:50';
+            } else {
+                timeElement.textContent = '20:00-21:30';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initUsers();
+        });
+
+        window.addEventListener('load', function() {
+            const container = document.querySelector('.container');
+            if (container && container.style.display !== 'none') {
+                container.style.opacity = '0';
+                container.style.transform = 'translateY(20px)';
+                container.style.transition = 'all 0.5s ease';
+                setTimeout(() => {
+                    container.style.opacity = '1';
+                    container.style.transform = 'translateY(0)';
+                }, 100);
+            }
+        });
+    </script>
+</body>
+</html>
