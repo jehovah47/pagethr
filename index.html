@@ -595,7 +595,8 @@
 
             const now = new Date();
             // 在日期 ${String(now.getDate()).padStart(2, '0')} 后面加上 \u2002
-            document.getElementById('fixed-signin-time').textContent = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}\u2002${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            // 使用 \u200a (Hair Space) 产生极其微小的呼吸感
+            document.getElementById('fixed-signin-time').textContent = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}\u200a${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
             setTimeout(() => {
                 loading.style.display = 'none';
