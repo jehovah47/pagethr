@@ -594,7 +594,8 @@
             document.getElementById('res-dept').textContent = currentUser.dept;
 
             const now = new Date();
-            document.getElementById('fixed-signin-time').textContent = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            // 在日期 ${String(now.getDate()).padStart(2, '0')} 后面加上 \u2002
+            document.getElementById('fixed-signin-time').textContent = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}\u2002${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
             setTimeout(() => {
                 loading.style.display = 'none';
