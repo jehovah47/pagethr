@@ -593,6 +593,9 @@
             document.getElementById('res-id').textContent = currentUser.id;
             document.getElementById('res-dept').textContent = currentUser.dept;
 
+            const now = new Date();
+            document.getElementById('fixed-signin-time').textContent = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
             setTimeout(() => {
                 loading.style.display = 'none';
                 container.style.display = 'block';
@@ -616,11 +619,9 @@
             
             const dateElement = document.querySelector('.date');
             const timeElement = document.querySelector('.time');
-            const signinDateElement = document.querySelector('.info-details .info-item .value');
-            
             if (dateElement) dateElement.textContent = dateString;
             if (timeElement) timeElement.textContent = timeString;
-            if (signinDateElement) signinDateElement.textContent = dateString;
+            
         }
 
         function startDateTimeUpdate() {
