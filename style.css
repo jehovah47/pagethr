@@ -170,22 +170,20 @@ body {
     
     .title {
         margin-bottom: 15px;
-        font-size: 24px;
+        font-size: 26px;
         font-weight: 600;
     }
     
     .date {
-          font-size: 24px;
+          font-size: 26px;
           font-weight: 400;
           margin-bottom: -6px;
-          letter-spacing: -0.2px;
       }
      
      .time {
-          font-size: 24px;
+          font-size: 26px;
           font-weight: 400;
           margin-bottom: 0px;
-          letter-spacing: -0.2px;
       }
      
      .status-section {
@@ -217,10 +215,6 @@ body {
          font-size: 13px;
      }
 
-    .info-details .value {
-        /* 1. 字间距：数值越大越稀疏 */
-        letter-spacing: -0.2px; 
-    }
     .personal-info {
          margin-top: 30px;
          margin-bottom: 20px;
