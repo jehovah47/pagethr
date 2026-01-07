@@ -214,6 +214,10 @@ body {
          margin-bottom: 12px;
          font-size: 13px;
      }
+
+    .info-details .value {
+        /* 1. 字间距：数值越大越稀疏 */
+        letter-spacing: -0.2px; 
     
     .personal-info {
          margin-top: 30px;
