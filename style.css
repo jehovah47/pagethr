@@ -133,6 +133,7 @@ body {
     background: none;
     display: block;
     font-size: 16px;
+    color: #666;
 }
 
 .view-button {
@@ -223,6 +224,7 @@ body {
             margin-bottom: 8px;
             font-size: 14px;
             padding: 0 0 0 20px;
+            color: #666;
         }
     
     .view-button {
