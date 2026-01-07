@@ -113,7 +113,7 @@ body {
 }
 
 .value {
-    color: #333;
+    color: #666;
     flex: 1;
 }
 
@@ -205,7 +205,7 @@ body {
     }
     
     .info-details .info-item {
-         font-size: 22px;
+         font-size: 20px;
          padding-left: 15px;
      }
     
