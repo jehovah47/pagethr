@@ -175,13 +175,13 @@ body {
     }
     
     .date {
-          font-size: 26px;
+          font-size: 24px;
           font-weight: 400;
-          margin-bottom: -3px;
+          margin-bottom: -6px;
       }
      
      .time {
-          font-size: 26px;
+          font-size: 24px;
           font-weight: 400;
           margin-bottom: 0px;
       }
