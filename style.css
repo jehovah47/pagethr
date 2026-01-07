@@ -163,7 +163,7 @@ body {
 /* 响应式设计 */
 @media (max-width: 480px) {
     .container {
-        max-width: 360px;
+        max-width: 370px;
         min-height: 300px;
         padding: 12px 12px 20px 12px;
     }
@@ -178,12 +178,14 @@ body {
           font-size: 24px;
           font-weight: 400;
           margin-bottom: -6px;
+          letter-spacing: -0.2px;
       }
      
      .time {
           font-size: 24px;
           font-weight: 400;
           margin-bottom: 0px;
+          letter-spacing: -0.2px;
       }
      
      .status-section {
